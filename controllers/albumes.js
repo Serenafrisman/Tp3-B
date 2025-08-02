@@ -143,11 +143,13 @@ const getCancionesByAlbum = async (req, res) => {
             SELECT
             canciones.id,
             canciones.nombre,
-            album.nombre AS nombre_album,
+            canciones.duracion,
+            canciones.reproducciones,
             artista.nombre AS nombre_artista,
             FROM canciones,
-            JOIN artistas ON albumes.artista = artista.id ,
-            JOIN albumes ON canciones.al  WHERE c.album = $1bum = album.id`,
+            JOIN artistas ON albumes.artista = artista.id,
+            JOIN albumes ON canciones.album = album.id,
+            WHERE c.album = $1`,
             [req.params.id]);
             res.json(result.rows);
     } catch (error) {

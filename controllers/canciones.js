@@ -36,10 +36,10 @@ const getCanciones = async (_, res) => {
         artistas.nombre AS nombre_artista,
         canciones.duracion,
         canciones.reproducciones,  
-        FROM canciones
-        JOIN artista ON canciones.album = artista.id
+        FROM canciones,
+        JOIN artista ON canciones.album = artista.id,
         JOIN album ON albumes.artista = album.id `,
-         [req.params.id]);
+        [req.params.id]);
         
          res.json(result.rows);
     } catch (error) {
@@ -69,9 +69,9 @@ const getCancion = async (req, res) => {
             canciones.nombre,
             canciones.duracion,
             canciones.reproducciones,
-            FROM canciones
-            JOIN artistas ON canciones.album = artista.id
-            JOIN album ON albumes.artista = album.id
+            FROM canciones,
+            JOIN artistas ON canciones.album = artista.id,
+            JOIN album ON albumes.artista = album.id,
             WHERE canciones.id = $1`,
              [req.params.id]);
              res.json(result.rows[0]);
