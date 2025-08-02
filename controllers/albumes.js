@@ -22,10 +22,10 @@ const getAlbumes = async (_, res) => {
    try {
         const result = await query(`
             SELECT
-            albumes.id
-            albumes.nombre
-            artistas.nombre AS nombre_artista
-            FROM albumes
+            albumes.id,
+            albumes.nombre,
+            artistas.nombre AS nombre_artista,
+            FROM albumes,
             JOIN artistas ON albumes.artista = artista.id `,
             [req.params.id]);
             res.json(result.rows);
@@ -49,11 +49,11 @@ const getAlbum = async (req, res) => {
    try {
         const result = await query(`
             SELECT
-            abumes.id
-            albumes.nombre
-            artistas.nombre AS nombre_artista
-            FROM albumes
-            JOIN artistas ON albumes.artista = artista.id
+            abumes.id,
+            albumes.nombre,
+            artistas.nombre AS nombre_artista,
+            FROM albumes,
+            JOIN artistas ON albumes.artista = artista.id,
             WHERE albumes.id = $1`,
              [req.params.id]);
              res.json(result.rows[0]);
@@ -77,7 +77,7 @@ const createAlbum = async (req, res) => {
        try {
     const {nombre , artista} = req.body;
         await query(`
-            INSERT INTO albumes
+            INSERT INTO albumes,
             (nombre, artista)
             VALUES($1,$2)`,
              [nombre, artista]);
@@ -116,7 +116,7 @@ const deleteAlbum = async (req, res) => {
  try{
         const canciones = await query(`
             SELECT * 
-            FROM canciones 
+            FROM canciones ,
             WHERE id = $1`,
             [req.params.id]);
             if (canciones.rows.length > 0) {
@@ -124,7 +124,7 @@ const deleteAlbum = async (req, res) => {
         }
         await query(`
             DELETE 
-            FROM albumes
+            FROM albumes,
             WHERE id =$1`,
            [req.params.id]);
            res.sendStatus(204);
@@ -141,14 +141,15 @@ const getCancionesByAlbum = async (req, res) => {
     try {
         const result = await query( ` 
             SELECT
-            canciones.id
-            canciones.nombre
-            artistas.nombre AS nombre_artista
-            FROM canciones
-            JOIN artistas ON albumes.artista = artista.id `,
+            canciones.id,
+            canciones.nombre,
+            album.nombre AS nombre_album,
+            artista.nombre AS nombre_artista,
+            FROM canciones,
+            JOIN artistas ON albumes.artista = artista.id ,
+            JOIN albumes ON canciones.al  WHERE c.album = $1bum = album.id`,
             [req.params.id]);
             res.json(result.rows);
-             res.json(result.rows);
     } catch (error) {
         console.error("Error al obtener las canciones del album:", error);
         res.status(500).json({ error: "Error al obtener las canciones del album" });
