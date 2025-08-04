@@ -28,20 +28,20 @@ const getCanciones = async (_, res) => {
         ]
     */
   
-     try {
+       try {
         const result = await query(`
-        SELECT
-        canciones.id,
-        canciones.nombre,
-        artistas.nombre AS nombre_artista,
-        canciones.duracion,
-        canciones.reproducciones,  
-        FROM canciones,
-        JOIN artista ON canciones.album = artista.id,
-        JOIN album ON albumes.artista = album.id `,
-        [req.params.id]);
-        
-         res.json(result.rows);
+            SELECT
+                canciones.id,
+                canciones.nombre,
+                artistas.nombre AS nombre_artista,
+                albumes.nombre AS nombre_album,
+                canciones.duracion,
+                canciones.reproducciones
+            FROM canciones
+            JOIN albumes ON canciones.album = albumes.id
+            JOIN artistas ON albumes.artista = artistas.id
+        `); 
+        res.json(result.rows);
     } catch (error) {
         console.error("Error al obtener las canciones", error);
         res.status(500).json({ error: "Error al obtener las canciones" });
@@ -62,21 +62,21 @@ const getCancion = async (req, res) => {
         }
     */
      // (Reproducciones se inicializa en 0)
-   try {
+  try {
         const result = await query(`
             SELECT
-            canciones.id,
-            canciones.nombre,
-            canciones.duracion,
-            canciones.reproducciones,
-            FROM canciones,
-            JOIN artistas ON canciones.album = artista.id,
-            JOIN album ON albumes.artista = album.id,
+                canciones.id,
+                canciones.nombre,
+                canciones.duracion,
+                canciones.reproducciones,
+                artistas.nombre AS nombre_artista,
+                albumes.nombre AS nombre_album
+            FROM canciones
+            JOIN albumes ON canciones.album = albumes.id
+            JOIN artistas ON albumes.artista = artistas.id
             WHERE canciones.id = $1`,
-             [req.params.id]);
-             res.json(result.rows[0]);
-
-         res.json(result.rows);
+            [req.params.id]);
+        res.json(result.rows[0]); 
     } catch (error) {
         console.error("Error al obtener la cancion", error);
         res.status(500).json({ error: "Error al obtener la cancion" });
@@ -97,9 +97,9 @@ const createCancion = async (req, res) => {
     try {
         const {nombre ,album ,duracion} = req.body;
         await query(`
-            INSERT INTO canciones 
+        INSERT INTO canciones 
             (nombre, album, duracion, reproducciones)
-            VALUES ($1, $2, $3, 0)
+        VALUES ($1, $2, $3, 0)
            `, [nombre, album, duracion]);
         res.status(201).json({ nombre,album,duracion });
     } catch (error) {
@@ -121,19 +121,17 @@ const updateCancion = async (req, res) => {
         }
     */
     // (Reproducciones no se puede modificar con esta consulta)
- try {
-        const { nombre , album, duracion} = req.body;
+  try {
+        const { nombre, album, duracion } = req.body;
         await query(`
-            UPDATE cancion
-            SET (nombre, album, duracion) = ($1,$2,$3)
-            WHERE id = $4 `
-             [nombre,album,duracion ],
-            [req.params.id]);
-         res.json({ nombre, album, duracion });
-       
- } catch (error) {
+            UPDATE canciones
+            SET nombre = $1, album = $2, duracion = $3
+            WHERE id = $4`,
+            [nombre, album, duracion, req.params.id]); 
+        res.json({ id: req.params.id, nombre, album, duracion }); 
+    } catch (error) {
         console.error("Error al actualizar la canción:", error);
-        res.status(500).json({ error: "Error al actualizar la canción"});
+        res.status(500).json({ error: "Error al actualizar la canción" });
     }
 };
 const deleteCancion = async (req, res) => {
@@ -142,18 +140,18 @@ const deleteCancion = async (req, res) => {
     try {
         // Veamos que la cancion no tenga albumes asociados
         const albumes = await query(`
-            SELECT * 
-            FROM albumes 
-            WHERE cancion = $1`, 
+        SELECT * 
+        FROM albumes 
+        WHERE cancion = $1`, 
             [req.params.id]);
              if (albumes.rows.length > 0) {
             return res.status(400).json({ error: "La cancion tiene albumes asociados" });
            
         }
          await query(`
-            DELETE
-            FROM canciones
-            WHERE id = $1 `,
+        DELETE
+        FROM canciones
+        WHERE id = $1 `,
            [req.params.id] );
          res.sendStatus(204);
    } catch (error) {
@@ -167,9 +165,9 @@ const reproducirCancion = async (req, res) => {
  try {
      const { id } = req.params;
        await query(`
-            UPDATE canciones
-            SET reproducciones = reproducciones + 1
-            WHERE id =$1`, 
+        UPDATE canciones
+        SET reproducciones = reproducciones + 1
+        WHERE id =$1`, 
             [id]);
             res.sendStatus(204)
            } catch (error) {
